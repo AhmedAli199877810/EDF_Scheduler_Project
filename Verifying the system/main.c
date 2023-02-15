@@ -88,7 +88,7 @@
 #define PERIODIC_PERIOD		  	100
 #define UART_PERIOD					  20
 #define LOAD1_PERIOD					10
-#define LOAD2_PERIOD					80
+#define LOAD2_PERIOD					100
 
 unsigned int Button_1_Start, Button_1_Total;
 unsigned int Button_2_Start, Button_2_Total;
@@ -99,7 +99,6 @@ unsigned int Load_2_Start, Load_2_total;
 unsigned int System_Time;
 unsigned int Cpu_Load;									
 
-/*Handlers*/
 BaseType_t xReturned;
 QueueHandle_t xMessage_Buffer1 = NULL;
 
@@ -110,9 +109,6 @@ TaskHandle_t Uart_Receiver_Handler = NULL;
 TaskHandle_t Load_1_Simulation_Handler = NULL;
 TaskHandle_t Load_2_Simulation_Handler = NULL;
 
-
-
-
 /*
  * Configure the processor for use with the Keil demo board.  This is very
  * minimal as most of the setup is managed by the settings in the project
@@ -120,9 +116,6 @@ TaskHandle_t Load_2_Simulation_Handler = NULL;
  */
 static void prvSetupHardware( void );
 /*-----------------------------------------------------------*/
-
-
-/*Tasks Prototypes*/
 void Button_1_Monitor( void * pvParameters );
 void Button_2_Monitor( void * pvParameters );
 void Periodic_Transmitter (void * pvParameters );
@@ -175,7 +168,7 @@ int main( void )
                     &Uart_Receiver_Handler,		/* Used to pass out the created task's handle. */
 										UART_PERIOD);      				/* Task Deadline */
 	
-										xReturned = xTaskPeriodicCreate(
+	xReturned = xTaskPeriodicCreate(
                     Load_2_Simulation,       /* Function that implements the task. */
                     "LS2",     /* Text name for the task. */
                     100,      				/* Stack size in words, not bytes. */
@@ -192,11 +185,7 @@ int main( void )
                     1,						/* Priority at which the task is created. */
                     &Load_1_Simulation_Handler,		/* Used to pass out the created task's handle. */
 										LOAD1_PERIOD);      				/* Task Deadline */
-			
-
-										
-										
-										/*Creating the Queue */						
+					
 	xMessage_Buffer1 = xQueueCreate( 3, sizeof(char));
 		
 	/* Now all the tasks have been started - start the scheduler.
@@ -215,8 +204,8 @@ int main( void )
 
 void vApplicationTickHook (void)
 {
-	GPIO_write(PORT_0 , PIN1, PIN_IS_HIGH);
-	GPIO_write(PORT_0 , PIN1, PIN_IS_LOW);
+	GPIO_write(PORT_1 , PIN1, PIN_IS_HIGH);
+	GPIO_write(PORT_1 , PIN1, PIN_IS_LOW);
 }
 
 /* Function to reset timer 1 */
@@ -326,46 +315,39 @@ void Uart_Receiver (void * pvParameters )
 			xSerialPutChar('1');
 			xSerialPutChar('=');
 			xSerialPutChar(Received_message1);
+      xSerialPutChar('\n');		
 		}
 		else
 		{	
-			xSerialPutChar('\n');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
 		}
 		if( xQueueReceive( xMessage_Buffer1, &(Received_message2) , 0) && ((Received_message2 == 'r') ||(Received_message2 == 'f')))
 		{
-			xSerialPutChar('\n');
 			xSerialPutChar('B');
 			xSerialPutChar('T');
 			xSerialPutChar('2');
 			xSerialPutChar('=');
 			xSerialPutChar(Received_message2);
+		  xSerialPutChar('\n');
 		}
 		else
 		{	
-			xSerialPutChar('\n');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
 		}
-		/*Uncomment to get RunTime Statistics Over Uart terminal*/
-//		xSerialPutChar('\n');		
-//		vTaskGetRunTimeStats(RTstats);
-//		vSerialPutString( (signed char *) RTstats, strlen(RTstats));
-		
 		if( xQueueReceive( xMessage_Buffer1, &(Received_message3) , 0) && (Received_message3 == 'P'))
 		{
-			xSerialPutChar('\n');
 			xSerialPutChar('P');
 			xSerialPutChar('T');
 			xSerialPutChar('=');
 			xSerialPutChar(Received_message3);
+			xSerialPutChar('\n');
 		}
 		else
 		{	
-			xSerialPutChar('\n');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
 			xSerialPutChar(' ');
